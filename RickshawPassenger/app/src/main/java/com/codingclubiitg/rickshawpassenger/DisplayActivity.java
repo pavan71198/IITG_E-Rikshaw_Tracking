@@ -3,6 +3,7 @@ package com.codingclubiitg.rickshawpassenger;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,10 +22,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 import java.util.HashMap;
 
-public class DisplayActivity extends FragmentActivity implements OnMapReadyCallback {
+public class DisplayActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
     private static final String TAG = DisplayActivity.class.getSimpleName();
     private HashMap<String, Marker> mMarkers = new HashMap<>();
@@ -40,11 +42,18 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     @Override
+    public void onInfoWindowClick(Marker marker) {
+        Toast.makeText(this, "Info window clicked",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public void onMapReady(GoogleMap googleMap) {
         // Authenticate with Firebase when the Google map is loaded
         mMap = googleMap;
         mMap.setMaxZoomPreference(16);
         loginToFirebase();
+        mMap.setOnInfoWindowClickListener(this);
     }
 
     private void loginToFirebase() {
@@ -102,10 +111,29 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
         double lat = Double.parseDouble(value.get("latitude").toString());
         double lng = Double.parseDouble(value.get("longitude").toString());
+        int pssg = Integer.parseInt(value.get("passengers").toString());
         LatLng location = new LatLng(lat, lng);
-        var image =
+        MarkerOptions opts = new MarkerOptions().title(key).position(location);
+        if(pssg == 1){
+            opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        }
+
+        if(pssg == 2){
+            opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+        }
+
+        if(pssg == 3){
+            opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+        }
+
+        if(pssg == 4){
+            opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+        }
+
+        opts.snippet("PHONE NUMBER 8978927539875");
+
         if (!mMarkers.containsKey(key)) {
-            mMarkers.put(key, mMap.addMarker(new MarkerOptions().title(key).position(location).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            mMarkers.put(key, mMap.addMarker(opts));
         } else {
             mMarkers.get(key).setPosition(location);
         }
