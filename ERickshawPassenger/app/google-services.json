@@ -1,0 +1,94 @@
+{
+  "project_info": {
+    "project_number": "11812430866",
+    "firebase_url": "https://e-rikshaw-tracking.firebaseio.com",
+    "project_id": "e-rikshaw-tracking",
+    "storage_bucket": "e-rikshaw-tracking.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:11812430866:android:bf172f52bf435d6b",
+        "android_client_info": {
+          "package_name": "com.codingclubiitg.e_rickshawpassenger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "11812430866-fscfkeat1k29v4pvccienlkeh7on2f0v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5b5MZbR6yzLjdthfAFBLK-JWEzcejLgY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:11812430866:android:ba71aad4da578f36",
+        "android_client_info": {
+          "package_name": "com.codingclubiitg.e_rikshawdriver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "11812430866-r1e83iv5j5g528c9cajo64rnq8nefe0e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.codingclubiitg.e_rikshawdriver",
+            "certificate_hash": "1f6abbbe7efa30e8523ad85b00106dcf9d8626e6"
+          }
+        },
+        {
+          "client_id": "11812430866-48p7935p8ilkk07a4r7v24ekkd575bqn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.codingclubiitg.e_rikshawdriver",
+            "certificate_hash": "af49e1312741bec174236dba25ce290580b77f3a"
+          }
+        },
+        {
+          "client_id": "11812430866-fscfkeat1k29v4pvccienlkeh7on2f0v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5b5MZbR6yzLjdthfAFBLK-JWEzcejLgY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "11812430866-fscfkeat1k29v4pvccienlkeh7on2f0v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
