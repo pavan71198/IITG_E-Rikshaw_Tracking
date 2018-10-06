@@ -3,7 +3,11 @@ package com.codingclubiitg.rickshawpassenger;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
+import android.content.Intent;
+import android.net.Uri;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+// android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -43,8 +47,21 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        Toast.makeText(this, "Info window clicked",
-                Toast.LENGTH_SHORT).show();
+        Intent dialIntent = new Intent(Intent.ACTION_DIAL);
+        dialIntent.setData(Uri.parse("tel:"+"8802177690"));//change the number
+        startActivity(dialIntent);
+
+        String[] options = {"Positive", "Unavailable", "Did not pick up"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("How did the driver respond?");
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // the user clicked on colors[which]
+            }
+        });
+        builder.show();
+
     }
 
     @Override
@@ -130,10 +147,12 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
             opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         }
 
-        opts.snippet("PHONE NUMBER 8978927539875");
+        opts.snippet("Number Of Passengers : " + Integer.toString(pssg) + "\n" + "Tap to call on ");
 
         if (!mMarkers.containsKey(key)) {
-            mMarkers.put(key, mMap.addMarker(opts));
+            Marker mrkr = mMap.addMarker(opts);
+            mrkr.showInfoWindow();
+            mMarkers.put(key, mrkr);
         } else {
             mMarkers.get(key).setPosition(location);
         }
@@ -141,6 +160,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         for (Marker marker : mMarkers.values()) {
             builder.include(marker.getPosition());
         }
+
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 300));
     }
 
