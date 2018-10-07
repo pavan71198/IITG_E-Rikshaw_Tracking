@@ -11,6 +11,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -58,14 +59,10 @@ public class DriverLocationService extends Service {
         createNotificationChannel();
         buildNotification();
         loginToFirebase();
+
     }
 
     private void buildNotification() {
-//        String stop = "stop";
-//        registerReceiver(stopReceiver, new IntentFilter(stop));
-//        PendingIntent broadcastIntent = PendingIntent.getBroadcast(
-//                this, 0, new Intent(stop), PendingIntent.FLAG_UPDATE_CURRENT);
-        // Create the persistent notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "location")
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getString(R.string.notification_text))
@@ -86,30 +83,29 @@ public class DriverLocationService extends Service {
 //        }
 //    };
 
-    private void loginToFirebase() {
-        String email = getString(R.string.firebase_email);
-        String password = getString(R.string.firebase_password);
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(
-                email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>(){
-            @Override
-            public void onComplete(Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "firebase auth success");
-                    requestLocationUpdates();
-                } else {
-                    Log.d(TAG, "firebase auth failed");
-                }
-            }
-        });
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "destroying service");
+        stopSelf();
     }
 
-    private void requestLocationUpdates() {
+    private void loginToFirebase() {
+        String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+        if (email!=null) {
+            requestLocationUpdates(email);
+        }
+    }
+
+    private void requestLocationUpdates(String email) {
         LocationRequest request = new LocationRequest();
         request.setInterval(10000);
         request.setFastestInterval(5000);
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
-        final String path = getString(R.string.firebase_path) + "/" + getString(R.string.transport_id);
+
+        final String path = getString(R.string.firebase_path) + "/" + email.split("@")[0];
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
         if (permission == PackageManager.PERMISSION_GRANTED) {
