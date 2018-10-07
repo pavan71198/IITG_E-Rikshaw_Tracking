@@ -9,6 +9,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.widget.EditText;
 import android.text.InputType;
+import android.app.ProgressDialog;
 // android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -38,6 +39,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
 
     private static final String TAG = DisplayActivity.class.getSimpleName();
     private HashMap<String, Marker> mMarkers = new HashMap<>();
+    private HashMap<String, Object> driver_data_map = new HashMap<>();
     private GoogleMap mMap;
     private DataSnapshot driver_data;
     private FirebaseFirestore db;
@@ -56,11 +58,11 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        Intent dialIntent = new Intent(Intent.ACTION_DIAL);
-        dialIntent.setData(Uri.parse("tel:"+"8802177690"));//change the number
-        startActivity(dialIntent);
-
         final String driver_id = marker.getTag().toString();
+
+        Intent dialIntent = new Intent(Intent.ACTION_DIAL);
+        dialIntent.setData(Uri.parse("tel:" + "+91" + driver_id));//change the number
+        startActivity(dialIntent);
 
         final String[] options = {"Positive", "Unavailable", "Did not pick up", "Other/Complaint"};
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -75,7 +77,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
                     // Set up the input
                     final EditText input = new EditText(DisplayActivity.this);
                     // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-                    input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
 
                     builder2.setView(input);builder2.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
@@ -147,6 +149,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
                 String key = dataSnapshot.getKey();
                 if(key.equals("Drivers")){
                     driver_data = dataSnapshot;
+                    driver_data_map = (HashMap<String, Object>) driver_data.getValue();
                     return;
                 }
                 else {
@@ -189,6 +192,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         // boundaries required to show them all on the map at once
 
         String key = dataSnapshot.getKey();
+        mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(DisplayActivity.this));
 
         HashMap<String, Object> value_location = (HashMap<String, Object>) dataSnapshot.getValue();
         HashMap<String, Object> value_driver = (HashMap<String, Object>) driver_data.child(key).getValue();
@@ -200,7 +204,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         Log.d(TAG, "VEGETAL NUMBER " + vehicle_no);
 
         LatLng location = new LatLng(lat, lng);
-        MarkerOptions opts = new MarkerOptions().title(key).position(location);
+        MarkerOptions opts = new MarkerOptions().title(value_driver.get("Mobile Number").toString()).position(location);
         if(pssg == 1){
             opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
         }
@@ -217,7 +221,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
             opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         }
 
-        opts.snippet("Number Of Passengers : " + Integer.toString(pssg) + "\n" + "Tap to call on ");
+        opts.snippet("Driver : " + value_driver.get("Name").toString() + "\n" + "Number Of Passengers : " + Integer.toString(pssg) + "\n" + "Tap to call");
 
         if (!mMarkers.containsKey(key)) {
             Marker mrkr = mMap.addMarker(opts);
@@ -225,7 +229,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
             mMarkers.get(key).setTag(key);
         } else {
             mMarkers.get(key).setPosition(location);
-            mMarkers.get(key).setTag(key);
+            mMarkers.get(key).setTag(value_driver.get("Mobile Number"));
         }
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for (Marker marker : mMarkers.values()) {
@@ -233,6 +237,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         }
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 300));
+        dialog.hide();
 
     }
 
