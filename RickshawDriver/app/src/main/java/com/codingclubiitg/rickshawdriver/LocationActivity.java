@@ -9,15 +9,20 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 public class LocationActivity extends AppCompatActivity {
+    private static final String TAG = LocationActivity.class.getSimpleName();
 
     private static final int PERMISSIONS_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_location);
 
         // Check GPS is enabled
         LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -26,13 +31,26 @@ public class LocationActivity extends AppCompatActivity {
             finish();
         }
 
+        Button mStartDrivingButton = (Button) findViewById(R.id.start_driving_button);
+        mStartDrivingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startTrackerService();
+            }
+        });
+
+        Button mStopDrivingButton = (Button) findViewById(R.id.stop_driving_button);
+        mStopDrivingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopTrackerService();
+            }
+        });
         // Check location permission is granted - if it is, start
         // the service, otherwise request the permission
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
-        if (permission == PackageManager.PERMISSION_GRANTED) {
-            startTrackerService();
-        } else {
+        if (permission != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST);
@@ -41,17 +59,19 @@ public class LocationActivity extends AppCompatActivity {
 
     private void startTrackerService() {
         startService(new Intent(this, DriverLocationService.class));
-        finish();
+    }
+
+    private void stopTrackerService() {
+        Log.d(TAG, "stopping service");
+        stopService(new Intent(this, DriverLocationService.class));
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[]
             grantResults) {
-        if (requestCode == PERMISSIONS_REQUEST && grantResults.length == 1
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (!(requestCode == PERMISSIONS_REQUEST && grantResults.length == 1
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
             // Start the service when the permission is granted
-            startTrackerService();
-        } else {
             finish();
         }
     }
