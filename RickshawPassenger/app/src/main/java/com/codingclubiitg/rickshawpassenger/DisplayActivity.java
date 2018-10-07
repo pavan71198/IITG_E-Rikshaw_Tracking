@@ -61,7 +61,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         final String driver_id = marker.getTag().toString();
 
         Intent dialIntent = new Intent(Intent.ACTION_DIAL);
-        dialIntent.setData(Uri.parse("tel:" + "+91" + driver_id));//change the number
+        dialIntent.setData(Uri.parse("tel:" + "+91" + marker.getTag().toString()));//change the number
         startActivity(dialIntent);
 
         final String[] options = {"Positive", "Unavailable", "Did not pick up", "Other/Complaint"};
@@ -226,7 +226,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         if (!mMarkers.containsKey(key)) {
             Marker mrkr = mMap.addMarker(opts);
             mMarkers.put(key, mrkr);
-            mMarkers.get(key).setTag(key);
+            mMarkers.get(key).setTag(value_driver.get("Mobile Number"));
         } else {
             mMarkers.get(key).setPosition(location);
             mMarkers.get(key).setTag(value_driver.get("Mobile Number"));
@@ -237,7 +237,6 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         }
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 300));
-        dialog.hide();
 
     }
 
