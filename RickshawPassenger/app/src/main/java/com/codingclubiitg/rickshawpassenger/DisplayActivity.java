@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.widget.EditText;
+import android.text.InputType;
 // android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,15 +28,19 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class DisplayActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
     private static final String TAG = DisplayActivity.class.getSimpleName();
     private HashMap<String, Marker> mMarkers = new HashMap<>();
     private GoogleMap mMap;
+    private DataSnapshot driver_data;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +49,10 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        db = FirebaseFirestore.getInstance();
     }
+
+
 
     @Override
     public void onInfoWindowClick(Marker marker) {
@@ -51,17 +60,56 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         dialIntent.setData(Uri.parse("tel:"+"8802177690"));//change the number
         startActivity(dialIntent);
 
-        String[] options = {"Positive", "Unavailable", "Did not pick up"};
+        final String driver_id = marker.getTag().toString();
+
+        final String[] options = {"Positive", "Unavailable", "Did not pick up", "Other/Complaint"};
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("How did the driver respond?");
         builder.setItems(options, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // the user clicked on colors[which]
+                if(which == 3){
+                    AlertDialog.Builder builder2 = new AlertDialog.Builder(DisplayActivity.this);
+                    builder2.setTitle("Title");
+
+                    // Set up the input
+                    final EditText input = new EditText(DisplayActivity.this);
+                    // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                    input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+
+                    builder2.setView(input);builder2.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String complaint_text = input.getText().toString();
+                            Map<String, Object> complaint = new HashMap<>();
+                            complaint.put("DriverID", driver_id);
+                            complaint.put("Complaint", complaint_text);
+
+                            db.collection("complaints").add(complaint);
+
+                        }
+                    });
+                    builder2.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder2.show();
+
+                }
+
+                else{
+                    Map<String, Object> feedback = new HashMap<>();
+                    feedback.put("DriverID", driver_id);
+                    feedback.put("Feedback", options[which]);
+
+                    db.collection("feedback").add(feedback);
+                }
             }
         });
         builder.show();
-
     }
 
     @Override
@@ -96,12 +144,27 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         ref.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                setMarker(dataSnapshot);
+                String key = dataSnapshot.getKey();
+                if(key.equals("Drivers")){
+                    driver_data = dataSnapshot;
+                    return;
+                }
+                else {
+                    for(DataSnapshot child : dataSnapshot.getChildren()) {
+                        setMarker(child);
+                    }
+                }
+
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                setMarker(dataSnapshot);
+                String key = dataSnapshot.getKey();
+                if(!key.equals("Drivers")) {
+                    for(DataSnapshot child : dataSnapshot.getChildren()) {
+                        setMarker(child);
+                    }
+                }
             }
 
             @Override
@@ -124,11 +187,18 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         // its value in mMarkers, which contains all the markers
         // for locations received, so that we can build the
         // boundaries required to show them all on the map at once
+
         String key = dataSnapshot.getKey();
-        HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
-        double lat = Double.parseDouble(value.get("latitude").toString());
-        double lng = Double.parseDouble(value.get("longitude").toString());
-        int pssg = Integer.parseInt(value.get("passengers").toString());
+
+        HashMap<String, Object> value_location = (HashMap<String, Object>) dataSnapshot.getValue();
+        HashMap<String, Object> value_driver = (HashMap<String, Object>) driver_data.child(key).getValue();
+        double lat = Double.parseDouble(value_location.get("latitude").toString());
+        double lng = Double.parseDouble(value_location.get("longitude").toString());
+        int pssg = Integer.parseInt(value_driver.get("passengers").toString());//Integer.parseInt(value.get("passengers").toString());
+        String vehicle_no = value_driver.get("Vehicle Number").toString();
+
+        Log.d(TAG, "VEGETAL NUMBER " + vehicle_no);
+
         LatLng location = new LatLng(lat, lng);
         MarkerOptions opts = new MarkerOptions().title(key).position(location);
         if(pssg == 1){
@@ -151,10 +221,11 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
 
         if (!mMarkers.containsKey(key)) {
             Marker mrkr = mMap.addMarker(opts);
-            mrkr.showInfoWindow();
             mMarkers.put(key, mrkr);
+            mMarkers.get(key).setTag(key);
         } else {
             mMarkers.get(key).setPosition(location);
+            mMarkers.get(key).setTag(key);
         }
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for (Marker marker : mMarkers.values()) {
@@ -162,6 +233,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         }
 
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 300));
+
     }
 
 }
