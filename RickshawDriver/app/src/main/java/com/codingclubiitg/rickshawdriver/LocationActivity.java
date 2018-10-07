@@ -12,7 +12,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class LocationActivity extends AppCompatActivity {
     private static final String TAG = LocationActivity.class.getSimpleName();
@@ -39,11 +45,34 @@ public class LocationActivity extends AppCompatActivity {
             }
         });
 
-        Button mStopDrivingButton = (Button) findViewById(R.id.stop_driving_button);
-        mStopDrivingButton.setOnClickListener(new View.OnClickListener() {
+//        Button mStopDrivingButton = (Button) findViewById(R.id.stop_driving_button);
+//        mStopDrivingButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                stopTrackerService();
+//            }
+//        });
+
+        final TextView mPassengerCount = (TextView) findViewById(R.id.num_passengers);
+
+        SeekBar mPassengerSeekBar = (SeekBar) findViewById(R.id.num_passengers_seekbar);
+        mPassengerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onClick(View view) {
-                stopTrackerService();
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                mPassengerCount.setText(String.valueOf(i));
+                String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+                final String path = "Drivers" + "/" + email.split("@")[0]+"/passengers";
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
+                ref.setValue(i);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
         // Check location permission is granted - if it is, start
@@ -61,10 +90,9 @@ public class LocationActivity extends AppCompatActivity {
         startService(new Intent(this, DriverLocationService.class));
     }
 
-    private void stopTrackerService() {
-        Log.d(TAG, "stopping service");
-        stopService(new Intent(this, DriverLocationService.class));
-    }
+//    private void stopTrackerService() {
+//        stopService(new Intent(this, DriverLocationService.class));
+//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[]
