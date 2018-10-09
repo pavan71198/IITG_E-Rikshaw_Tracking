@@ -9,6 +9,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.widget.EditText;
 import android.text.InputType;
+import android.widget.LinearLayout;
 import android.app.ProgressDialog;
 // android.widget.Toast;
 
@@ -34,6 +35,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Date;
+import java.sql.Timestamp;
 
 public class DisplayActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
@@ -72,20 +75,34 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
             public void onClick(DialogInterface dialog, int which) {
                 if(which == 3){
                     AlertDialog.Builder builder2 = new AlertDialog.Builder(DisplayActivity.this);
-                    builder2.setTitle("Title");
+                    builder2.setTitle("File a complaint");
 
                     // Set up the input
+                    final EditText webmail = new EditText(DisplayActivity.this);
                     final EditText input = new EditText(DisplayActivity.this);
                     // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                    LinearLayout layout = new LinearLayout(DisplayActivity.this);
+                    layout.setOrientation(LinearLayout.VERTICAL);
+                    webmail.setHint("Your Webmail");
+                    input.setHint("Complaint");
                     input.setInputType(InputType.TYPE_CLASS_TEXT);
-
-                    builder2.setView(input);builder2.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    webmail.setInputType(InputType.TYPE_CLASS_TEXT);
+                    layout.addView(webmail);
+                    layout.addView(input);
+                    builder2.setView(layout);
+                    builder2.setPositiveButton("Send", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             String complaint_text = input.getText().toString();
+                            String webmail_text = webmail.getText().toString();
                             Map<String, Object> complaint = new HashMap<>();
+                            Date date = new Date();
+                            long time = date.getTime();
+                            Timestamp ts = new Timestamp(time);
                             complaint.put("DriverID", driver_id);
                             complaint.put("Complaint", complaint_text);
+                            complaint.put("Webmail", webmail_text);
+                            complaint.put("Timestamp", ts.toString());
 
                             db.collection("complaints").add(complaint);
 
@@ -200,8 +217,6 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         double lng = Double.parseDouble(value_location.get("longitude").toString());
         int pssg = Integer.parseInt(value_driver.get("passengers").toString());//Integer.parseInt(value.get("passengers").toString());
         String vehicle_no = value_driver.get("Vehicle Number").toString();
-
-        Log.d(TAG, "VEGETAL NUMBER " + vehicle_no);
 
         LatLng location = new LatLng(lat, lng);
         MarkerOptions opts = new MarkerOptions().title(value_driver.get("Mobile Number").toString()).position(location);
