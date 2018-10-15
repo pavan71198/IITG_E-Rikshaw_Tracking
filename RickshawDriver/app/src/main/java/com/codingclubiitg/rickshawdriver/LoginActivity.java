@@ -36,6 +36,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +103,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             Intent intent = new Intent(LoginActivity.this, LocationActivity.class)
                     .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
+            String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+            final String path = "Drivers" + "/" + email.split("@")[0]+"/passengers";
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
+            ref.setValue(0);
         }
     }
 

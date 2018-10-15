@@ -33,7 +33,8 @@ import android.util.Log;
 
 public class DriverLocationService extends Service {
     private static final String TAG = DriverLocationService.class.getSimpleName();
-
+    private FusedLocationProviderClient client;
+    private static LocationCallback locationCallback;
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -88,6 +89,9 @@ public class DriverLocationService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "destroying service");
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.cancel(1);
+        client.removeLocationUpdates(locationCallback);
         stopSelf();
     }
 
@@ -103,15 +107,12 @@ public class DriverLocationService extends Service {
         request.setInterval(10000);
         request.setFastestInterval(5000);
         request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
-
         final String path = getString(R.string.firebase_path) + "/" + email.split("@")[0];
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION);
         if (permission == PackageManager.PERMISSION_GRANTED) {
-            // Request location updates and when an update is
-            // received, store the location in Firebase
-            client.requestLocationUpdates(request, new LocationCallback() {
+            client = LocationServices.getFusedLocationProviderClient(this);
+            locationCallback = new LocationCallback() {
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
                     DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
@@ -121,7 +122,10 @@ public class DriverLocationService extends Service {
                         ref.setValue(location);
                     }
                 }
-            }, null);
+            };
+            // Request location updates and when an update is
+            // received, store the location in Firebase
+            client.requestLocationUpdates(request, locationCallback, null);
         }
     }
 }

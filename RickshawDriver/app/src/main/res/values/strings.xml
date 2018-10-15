@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Rickshaw Driver</string>
+    <string name="app_name">E-Rickshaw Driver</string>
     <string name="notification_channel_name">Location Tracking</string>
     <string name="notification_channel_description">Status of location tracking.</string>
     <string name="NOTIFICATION_CHANNEL_ID">01</string>

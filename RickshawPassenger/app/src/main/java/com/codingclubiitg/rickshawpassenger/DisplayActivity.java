@@ -282,15 +282,15 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
                 LatLng location = new LatLng(lat, lng);
                 MarkerOptions opts = new MarkerOptions().title(value_driver.get("Mobile Number").toString()).position(location);
 
-                if (pssg >= 0 && pssg <= 2) {
+                if (pssg == 0 || pssg == 1) {
                     opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                 }
 
-                if (pssg >= 3 && pssg <= 4) {
+                if (pssg == 2 || pssg == 3) {
                     opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
                 }
 
-                if (pssg >= 5 && pssg <= 6) {
+                if (pssg == 4) {
                     opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
                 }
 

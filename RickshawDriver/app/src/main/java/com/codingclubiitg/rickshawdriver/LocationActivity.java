@@ -45,17 +45,19 @@ public class LocationActivity extends AppCompatActivity {
             }
         });
 
-//        Button mStopDrivingButton = (Button) findViewById(R.id.stop_driving_button);
-//        mStopDrivingButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                stopTrackerService();
-//            }
-//        });
+        Button mStopDrivingButton = (Button) findViewById(R.id.stop_driving_button);
+        mStopDrivingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopTrackerService();
+            }
+        });
 
         final TextView mPassengerCount = (TextView) findViewById(R.id.num_passengers);
 
         SeekBar mPassengerSeekBar = (SeekBar) findViewById(R.id.num_passengers_seekbar);
+
+
         mPassengerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -90,9 +92,9 @@ public class LocationActivity extends AppCompatActivity {
         startService(new Intent(this, DriverLocationService.class));
     }
 
-//    private void stopTrackerService() {
-//        stopService(new Intent(this, DriverLocationService.class));
-//    }
+    private void stopTrackerService() {
+        stopService(new Intent(this, DriverLocationService.class));
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[]
