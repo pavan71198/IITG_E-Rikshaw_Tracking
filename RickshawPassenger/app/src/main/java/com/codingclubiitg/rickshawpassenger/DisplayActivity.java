@@ -40,6 +40,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
+import java.util.Calendar;
 import java.sql.Timestamp;
 
 public class DisplayActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
@@ -47,8 +48,10 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
     private static final String TAG = DisplayActivity.class.getSimpleName();
     private HashMap<String, Marker> mMarkers = new HashMap<>();
     private HashMap<String, Object> driver_data_map = new HashMap<>();
+    private HashMap<String, Object> location_data_map = new HashMap<>();
     private GoogleMap mMap;
     private DataSnapshot driver_data;
+    private DataSnapshot location_data;
     private FirebaseFirestore db;
 
     @Override
@@ -195,22 +198,42 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
                 if(key.equals("Drivers")){
                     driver_data = dataSnapshot;
                     driver_data_map = (HashMap<String, Object>) driver_data.getValue();
-                    return;
-                }
-                else {
-                    for(DataSnapshot child : dataSnapshot.getChildren()) {
-                        setMarker(child);
+                    if (!location_data_map.isEmpty() && !driver_data_map.isEmpty()) {
+                        for (DataSnapshot child : location_data.getChildren()) {
+                            setMarker(child);
+                        }
                     }
                 }
-
+                else {
+                    location_data = dataSnapshot;
+                    location_data_map = (HashMap<String, Object>) location_data.getValue();
+                    if (!location_data_map.isEmpty() && !driver_data_map.isEmpty()) {
+                        for (DataSnapshot child : location_data.getChildren()) {
+                            setMarker(child);
+                        }
+                    }
+                }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
                 String key = dataSnapshot.getKey();
-                if(!key.equals("Drivers")) {
-                    for(DataSnapshot child : dataSnapshot.getChildren()) {
-                        setMarker(child);
+                if(key.equals("Drivers")){
+                    driver_data = dataSnapshot;
+                    driver_data_map = (HashMap<String, Object>) driver_data.getValue();
+                    if (!location_data_map.isEmpty() && !driver_data_map.isEmpty()) {
+                        for (DataSnapshot child : location_data.getChildren()) {
+                            setMarker(child);
+                        }
+                    }
+                }
+                else {
+                    location_data = dataSnapshot;
+                    location_data_map = (HashMap<String, Object>) location_data.getValue();
+                    if (!location_data_map.isEmpty() && !driver_data_map.isEmpty()) {
+                        for (DataSnapshot child : location_data.getChildren()) {
+                            setMarker(child);
+                        }
                     }
                 }
             }
@@ -235,51 +258,62 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
         // its value in mMarkers, which contains all the markers
         // for locations received, so that we can build the
         // boundaries required to show them all on the map at once
-
         String key = dataSnapshot.getKey();
         mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(DisplayActivity.this));
+        double lat_top = 26.201951;
+        double lat_bottom = 26.181968;
+        double lng_right = 91.703635;
+        double lng_left = 91.685964;
 
-        HashMap<String, Object> value_location = (HashMap<String, Object>) dataSnapshot.getValue();
-        HashMap<String, Object> value_driver = (HashMap<String, Object>) driver_data.child(key).getValue();
-        double lat = Double.parseDouble(value_location.get("latitude").toString());
-        double lng = Double.parseDouble(value_location.get("longitude").toString());
-        int pssg = Integer.parseInt(value_driver.get("passengers").toString());//Integer.parseInt(value.get("passengers").toString());
-        String vehicle_no = value_driver.get("Vehicle Number").toString();
+        HashMap<String, Object> value_location = (HashMap<String, Object>) location_data_map.get(key);
+        HashMap<String, Object> value_driver = (HashMap<String, Object>) driver_data_map.get(key);
+        Log.d(TAG, value_driver.toString());
+        Log.d(TAG, value_location.toString());
 
-        LatLng location = new LatLng(lat, lng);
-        MarkerOptions opts = new MarkerOptions().title(value_driver.get("Mobile Number").toString()).position(location);
-        if(pssg == 1){
-            opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        long time = Long.parseLong(value_location.get("time").toString());
+        if (Calendar.getInstance().getTime().getTime() - time < 600000){
+            double lat = Double.parseDouble(value_location.get("latitude").toString());
+            double lng = Double.parseDouble(value_location.get("longitude").toString());
+            if ((lat <= lat_top && lat >= lat_bottom) && (lng <= lng_right && lng >= lng_left)) {
+                Log.d(TAG, "rendering");
+                int pssg = Integer.parseInt(value_driver.get("passengers").toString());//Integer.parseInt(value.get("passengers").toString());
+                String vehicle_no = value_driver.get("Vehicle Number").toString();
+
+                LatLng location = new LatLng(lat, lng);
+                MarkerOptions opts = new MarkerOptions().title(value_driver.get("Mobile Number").toString()).position(location);
+
+                if (pssg >= 0 && pssg <= 2) {
+                    opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                }
+
+                if (pssg >= 3 && pssg <= 4) {
+                    opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                }
+
+                if (pssg >= 5 && pssg <= 6) {
+                    opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                }
+
+                opts.snippet("Driver : " + value_driver.get("Name").toString() + "\n" + "Number Of Passengers : " + Integer.toString(pssg) + "\n" + "Tap to call");
+
+                if (!mMarkers.containsKey(key)) {
+                    Marker mrkr = mMap.addMarker(opts);
+                    mMarkers.put(key, mrkr);
+                    mMarkers.get(key).setTag(value_driver.get("Mobile Number"));
+                } else {
+                    mMarkers.get(key).setIcon(opts.getIcon());
+                    mMarkers.get(key).setSnippet(opts.getSnippet());
+                    mMarkers.get(key).setPosition(location);
+                    mMarkers.get(key).setTag(value_driver.get("Mobile Number"));
+                }
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                for (Marker marker : mMarkers.values()) {
+                    builder.include(marker.getPosition());
+                }
+
+                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 300));
+            }
         }
-
-        if(pssg == 2){
-            opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-        }
-
-        if(pssg == 3){
-            opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-        }
-
-        if(pssg == 4){
-            opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-        }
-
-        opts.snippet("Driver : " + value_driver.get("Name").toString() + "\n" + "Number Of Passengers : " + Integer.toString(pssg) + "\n" + "Tap to call");
-
-        if (!mMarkers.containsKey(key)) {
-            Marker mrkr = mMap.addMarker(opts);
-            mMarkers.put(key, mrkr);
-            mMarkers.get(key).setTag(value_driver.get("Mobile Number"));
-        } else {
-            mMarkers.get(key).setPosition(location);
-            mMarkers.get(key).setTag(value_driver.get("Mobile Number"));
-        }
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        for (Marker marker : mMarkers.values()) {
-            builder.include(marker.getPosition());
-        }
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 300));
 
     }
 
