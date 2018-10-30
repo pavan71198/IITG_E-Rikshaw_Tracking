@@ -6,4 +6,5 @@
     <string name="firebase_password" translatable="false">vedant2018</string>
     <string name="title_activity_driver_feedback">DriverFeedbackActivity</string>
     <string name="title_activity_info">Info</string>
+    <string name="title_activity_splash_screen">SplashScreen</string>
 </resources>
