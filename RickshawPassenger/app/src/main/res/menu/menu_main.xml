@@ -7,5 +7,8 @@
     <item android:id="@+id/action_info"
         android:title="Info"
         app:showAsAction="never"/>
+    <item android:id="@+id/action_refresh"
+        android:title="Refresh"
+        app:showAsAction="never"/>
 
 </menu>

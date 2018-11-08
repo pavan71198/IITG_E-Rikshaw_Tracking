@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.app.ProgressDialog;
 // android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -37,6 +38,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.PlaceDetectionClient;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.LocationServices;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
@@ -53,6 +59,9 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
     private DataSnapshot driver_data;
     private DataSnapshot location_data;
     private FirebaseFirestore db;
+    private GeoDataClient mGeoDataClient;
+    private PlaceDetectionClient mPlaceDetectionClient;
+    private FusedLocationProviderClient mFusedLocationProviderClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +70,16 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        // Construct a GeoDataClient.
+        mGeoDataClient = Places.getGeoDataClient(this, null);
+
+        // Construct a PlaceDetectionClient.
+        mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
+
+        // Construct a FusedLocationProviderClient.
+        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
         db = FirebaseFirestore.getInstance();
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
@@ -73,6 +92,11 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
                 Intent intent = new Intent(this, InfoActivity.class);
                 startActivity(intent);
                 return true;
+
+            case R.id.action_refresh:
+                Intent refresh = new Intent(this, DisplayActivity.class);
+                startActivity(refresh);
+                finish();
 
             default:
                 // If we got here, the user's action was not recognized.

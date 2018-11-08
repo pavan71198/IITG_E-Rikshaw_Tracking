@@ -11,5 +11,5 @@
     <string name="info_line_3">Maximum number of Passengers to be allowed on the E-rickshaw will be 4.</string>
     <string name="info_line_4">Helpline number for the passengers to file complaints when the driver displays inappropriate behaviour is +916901029704. The complainant will have to provide the driver details.</string>
     <string name="info_line_5">Action will be taken against inappropriate behaviour of drivers (like drunken driving, rude behaviour with passengers, refusal to go to a particular location, not complying with traffic rules).</string>
-
+    <string name="title_activity_splash_screen">SplashScreen</string>
 </resources>
