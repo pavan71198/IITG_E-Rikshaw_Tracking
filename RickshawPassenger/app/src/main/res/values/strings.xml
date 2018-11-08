@@ -6,4 +6,10 @@
     <string name="firebase_password" translatable="false">vedant2018</string>
     <string name="title_activity_driver_feedback">DriverFeedbackActivity</string>
     <string name="title_activity_info">Info</string>
+    <string name="info_line_1">Fare for any E-Rickshaw ride in campus is Rs.10/person</string>
+    <string name="info_line_2">Fare to book an E-Rickshaw completely is Rs.50/trip and maximum of 1 hour/trip</string>
+    <string name="info_line_3">Maximum number of Passengers to be allowed on the E-rickshaw will be 4.</string>
+    <string name="info_line_4">Helpline number for the passengers to file complaints when the driver displays inappropriate behaviour is +916901029704. The complainant will have to provide the driver details.</string>
+    <string name="info_line_5">Action will be taken against inappropriate behaviour of drivers (like drunken driving, rude behaviour with passengers, refusal to go to a particular location, not complying with traffic rules).</string>
+
 </resources>
