@@ -14,10 +14,12 @@ import android.widget.LinearLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.app.ProgressDialog;
 // android.widget.Toast;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -37,11 +39,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 
-import com.google.android.gms.location.places.GeoDataClient;
-import com.google.android.gms.location.places.PlaceDetectionClient;
-import com.google.android.gms.location.places.Places;
-import com.google.android.gms.location.LocationServices;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,9 +58,6 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
     private DataSnapshot driver_data;
     private DataSnapshot location_data;
     private FirebaseFirestore db;
-    private GeoDataClient mGeoDataClient;
-    private PlaceDetectionClient mPlaceDetectionClient;
-    private FusedLocationProviderClient mFusedLocationProviderClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,14 +67,8 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        // Construct a GeoDataClient.
-        mGeoDataClient = Places.getGeoDataClient(this, null);
-
-        // Construct a PlaceDetectionClient.
-        mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
-
         // Construct a FusedLocationProviderClient.
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+//        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         db = FirebaseFirestore.getInstance();
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -277,6 +267,15 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
         });
     }
 
+    private BitmapDescriptor getMarkerIconFromDrawable(Drawable drawable) {
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        drawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
     private void setMarker(DataSnapshot dataSnapshot) {
         // When a location update is received, put or update
         // its value in mMarkers, which contains all the markers
@@ -299,6 +298,8 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
             double lat = Double.parseDouble(value_location.get("latitude").toString());
             double lng = Double.parseDouble(value_location.get("longitude").toString());
             if ((lat <= lat_top && lat >= lat_bottom) && (lng <= lng_right && lng >= lng_left)) {
+                Drawable rickshawDrawable = getResources().getDrawable(R.drawable.ic_rickshaw);
+                BitmapDescriptor markerIcon = getMarkerIconFromDrawable(rickshawDrawable);
                 Log.d(TAG, "rendering");
                 int pssg = Integer.parseInt(value_driver.get("passengers").toString());//Integer.parseInt(value.get("passengers").toString());
                 String vehicle_no = value_driver.get("Vehicle Number").toString();
@@ -307,15 +308,15 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
                 MarkerOptions opts = new MarkerOptions().title(value_driver.get("Mobile Number").toString()).position(location);
 
                 if (pssg == 0 || pssg == 1) {
-                    opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                    opts.icon(markerIcon);
                 }
 
                 if (pssg == 2 || pssg == 3) {
-                    opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+                    opts.icon(markerIcon);
                 }
 
                 if (pssg == 4) {
-                    opts.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+                    opts.icon(markerIcon);
                 }
 
                 opts.snippet("Driver : " + value_driver.get("Name").toString() + "\n" + "Number Of Passengers : " + Integer.toString(pssg) + "\n" + "Tap to call");
