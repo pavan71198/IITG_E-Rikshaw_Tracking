@@ -12,4 +12,12 @@
     <string name="info_line_4">Helpline number for the passengers to file complaints when the driver displays inappropriate behaviour is +916901029704. The complainant will have to provide the driver details.</string>
     <string name="info_line_5">Action will be taken against inappropriate behaviour of drivers (like drunken driving, rude behaviour with passengers, refusal to go to a particular location, not complying with traffic rules).</string>
     <string name="title_activity_splash_screen">SplashScreen</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="permission_rationale_location">Access to the location service is required to show your location on the map.</string>
+    <string name="location_permission_denied">This app requires location permission to enable the \'my location\' layer. Please try again and grant access to use the location.\nIf the permission has been permanently denied, it can be enabled from the System Settings &gt; Apps &gt; \'IITG E-Rickshaw\'.</string>
+    <string name="permission_required_toast">Location permission if you want to see your location.</string>
+    <string name="title_activity_feedback">FeedbackActivity</string>
+
+    <string name="feedback_info">Any feedback with fake ID or message won\'t be entertained.</string>
+
 </resources>

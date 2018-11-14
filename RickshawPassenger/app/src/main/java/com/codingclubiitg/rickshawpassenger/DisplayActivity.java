@@ -1,13 +1,25 @@
 package com.codingclubiitg.rickshawpassenger;
 
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationManager;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.Manifest;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.content.Intent;
 import android.net.Uri;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.view.View;
 import android.widget.EditText;
 import android.text.InputType;
 import android.widget.LinearLayout;
@@ -18,6 +30,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.app.ProgressDialog;
+import android.widget.TextView;
+import android.widget.Toast;
 // android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,6 +40,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -48,7 +63,10 @@ import java.util.Date;
 import java.util.Calendar;
 import java.sql.Timestamp;
 
-public class DisplayActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+public class DisplayActivity extends AppCompatActivity implements GoogleMap.OnMyLocationButtonClickListener,
+        GoogleMap.OnMyLocationClickListener,
+        OnMapReadyCallback,
+        ActivityCompat.OnRequestPermissionsResultCallback, GoogleMap.OnInfoWindowClickListener {
 
     private static final String TAG = DisplayActivity.class.getSimpleName();
     private HashMap<String, Marker> mMarkers = new HashMap<>();
@@ -58,7 +76,8 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
     private DataSnapshot driver_data;
     private DataSnapshot location_data;
     private FirebaseFirestore db;
-
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private Snackbar mSnackbarGps;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,18 +94,135 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
         setSupportActionBar(myToolbar);
     }
 
+    private void enableMyLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission to access the location is missing.
+            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
+                    Manifest.permission.ACCESS_FINE_LOCATION, true);
+        } else if (mMap != null) {
+            // Access to the location has been granted to the app.
+            checkGpsEnabled();
+            mMap.setMyLocationEnabled(true);
+        }
+    }
+
+    /**
+     * Third and final validation check - ensures GPS is enabled, and if not, prompts to
+     * enable it, otherwise all checks pass so start the location tracking service.
+     */
+    private void checkGpsEnabled() {
+        LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            reportGpsError();
+        } else {
+            resolveGpsError();
+        }
+    }
+
+    private void reportGpsError() {
+
+        Snackbar snackbar = Snackbar
+                .make(findViewById(R.id.map),"GPS is required for tracking", Snackbar.LENGTH_INDEFINITE)
+                .setAction("Enable", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                });
+
+        // Changing message text color
+        snackbar.setActionTextColor(Color.RED);
+
+        // Changing action button text color
+        View sbView = snackbar.getView();
+        TextView textView = (TextView) sbView.findViewById(android.support.design.R.id
+                .snackbar_text);
+        textView.setTextColor(Color.YELLOW);
+        snackbar.show();
+
+    }
+
+    private void resolveGpsError() {
+        if (mSnackbarGps != null) {
+            mSnackbarGps.dismiss();
+            mSnackbarGps = null;
+        }
+    }
+
+    @Override
+    public boolean onMyLocationButtonClick() {
+//        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
+        // Return false so that we don't consume the event and the default behavior still occurs
+        // (the camera animates to the user's current position).
+        return false;
+    }
+
+    @Override
+    public void onMyLocationClick(@NonNull Location location) {
+//        Toast.makeText(this, "Current location:\n" + location, Toast.LENGTH_LONG).show();
+    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_info:
-                Intent intent = new Intent(this, InfoActivity.class);
-                startActivity(intent);
+            case R.id.fare_info:
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(DisplayActivity.this);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+
+                    }
+                });
+                builder.setMessage(getString(R.string.info_line_1)+"\n\n"+getString(R.string.info_line_2));
+                builder.setTitle("Fare Info");
+                android.support.v7.app.AlertDialog d = builder.create();
+                d.show();
+                return true;
+
+            case R.id.rules_info:
+                android.support.v7.app.AlertDialog.Builder builder2 = new android.support.v7.app.AlertDialog.Builder(DisplayActivity.this);
+                builder2.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+
+                    }
+                });
+                builder2.setMessage(getString(R.string.info_line_3));
+                builder2.setTitle("Rules");
+                android.support.v7.app.AlertDialog d2 = builder2.create();
+                d2.show();
+                return true;
+
+            case R.id.helpline_info:
+                android.support.v7.app.AlertDialog.Builder builder3 = new android.support.v7.app.AlertDialog.Builder(DisplayActivity.this);
+                builder3.setPositiveButton("OK", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+
+                    }
+                });
+                builder3.setMessage(getString(R.string.info_line_4)+"\n\n"+getString(R.string.info_line_5));
+                builder3.setTitle("Helpline");
+                android.support.v7.app.AlertDialog d3 = builder3.create();
+                d3.show();
                 return true;
 
             case R.id.action_refresh:
                 Intent refresh = new Intent(this, DisplayActivity.class);
                 startActivity(refresh);
                 finish();
+                return true;
+
+            case R.id.action_feedback:
+                Intent feedback = new Intent(this, FeedbackActivity.class);
+                startActivity(feedback);
+                return true;
 
             default:
                 // If we got here, the user's action was not recognized.
@@ -180,9 +316,30 @@ public class DisplayActivity extends AppCompatActivity implements OnMapReadyCall
     public void onMapReady(GoogleMap googleMap) {
         // Authenticate with Firebase when the Google map is loaded
         mMap = googleMap;
+
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.style_json));
+
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
+        }
         mMap.setMaxZoomPreference(16);
-        loginToFirebase();
+        LatLng iitg = new LatLng(26.191683, 91.683292);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(iitg));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(13));
+//        loginToFirebase();
+        subscribeToUpdates();
         mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnMyLocationButtonClickListener(this);
+        mMap.setOnMyLocationClickListener(this);
+        enableMyLocation();
     }
 
     private void loginToFirebase() {

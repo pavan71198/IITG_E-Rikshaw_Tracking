@@ -5,10 +5,21 @@
 
     <!-- Settings, should always be in the overflow -->
     <item android:id="@+id/action_info"
-        android:title="Info"
-        app:showAsAction="never"/>
+        android:title="Info">
+        <menu>
+            <item android:id="@+id/fare_info"
+                android:title="Fare info" />
+            <item android:id="@+id/helpline_info"
+                android:title="Helpline" />
+            <item android:id="@+id/rules_info"
+                android:title="Rules" />
+        </menu>
+    </item>
     <item android:id="@+id/action_refresh"
         android:title="Refresh"
+        app:showAsAction="never"/>
+    <item android:id="@+id/action_feedback"
+        android:title="Feedback"
         app:showAsAction="never"/>
 
 </menu>
