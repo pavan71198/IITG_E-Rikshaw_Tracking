@@ -26,10 +26,10 @@ import android.widget.LinearLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
-import android.app.ProgressDialog;
+//import android.graphics.Bitmap;
+//import android.graphics.Canvas;
+//import android.graphics.drawable.Drawable;
+//import android.app.ProgressDialog;
 import android.widget.TextView;
 import android.widget.Toast;
 // android.widget.Toast;
@@ -54,7 +54,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.BitmapDescriptor;
+//import com.google.android.gms.maps.model.BitmapDescriptor;
 
 
 import java.util.HashMap;
@@ -330,10 +330,10 @@ public class DisplayActivity extends AppCompatActivity implements GoogleMap.OnMy
         } catch (Resources.NotFoundException e) {
             Log.e(TAG, "Can't find style. Error: ", e);
         }
-        mMap.setMaxZoomPreference(16);
-        LatLng iitg = new LatLng(26.191683, 91.683292);
+        mMap.setMaxZoomPreference(18);
+        LatLng iitg = new LatLng(26.1928807, 91.6948825);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(iitg));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(13));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 //        loginToFirebase();
         subscribeToUpdates();
         mMap.setOnInfoWindowClickListener(this);
@@ -424,14 +424,14 @@ public class DisplayActivity extends AppCompatActivity implements GoogleMap.OnMy
         });
     }
 
-    private BitmapDescriptor getMarkerIconFromDrawable(Drawable drawable) {
-        Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        canvas.setBitmap(bitmap);
-        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-        drawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
-    }
+//    private BitmapDescriptor getMarkerIconFromDrawable(Drawable drawable) {
+//        Canvas canvas = new Canvas();
+//        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+//        canvas.setBitmap(bitmap);
+//        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+//        drawable.draw(canvas);
+//        return BitmapDescriptorFactory.fromBitmap(bitmap);
+//    }
 
     private void setMarker(DataSnapshot dataSnapshot) {
         // When a location update is received, put or update
@@ -455,8 +455,8 @@ public class DisplayActivity extends AppCompatActivity implements GoogleMap.OnMy
             double lat = Double.parseDouble(value_location.get("latitude").toString());
             double lng = Double.parseDouble(value_location.get("longitude").toString());
             if ((lat <= lat_top && lat >= lat_bottom) && (lng <= lng_right && lng >= lng_left)) {
-                Drawable rickshawDrawable = getResources().getDrawable(R.drawable.ic_rickshaw);
-                BitmapDescriptor markerIcon = getMarkerIconFromDrawable(rickshawDrawable);
+//                Drawable rickshawDrawable = getResources().getDrawable(R.drawable.ic_rickshaw);
+//                BitmapDescriptor markerIcon = getMarkerIconFromDrawable(rickshawDrawable);
                 Log.d(TAG, "rendering");
                 int pssg = Integer.parseInt(value_driver.get("passengers").toString());//Integer.parseInt(value.get("passengers").toString());
                 String vehicle_no = value_driver.get("Vehicle Number").toString();
@@ -465,15 +465,15 @@ public class DisplayActivity extends AppCompatActivity implements GoogleMap.OnMy
                 MarkerOptions opts = new MarkerOptions().title(value_driver.get("Mobile Number").toString()).position(location);
 
                 if (pssg == 0 || pssg == 1) {
-                    opts.icon(markerIcon);
+                    opts.icon(BitmapDescriptorFactory.fromResource(R.drawable.green_icon));
                 }
 
                 if (pssg == 2 || pssg == 3) {
-                    opts.icon(markerIcon);
+                    opts.icon(BitmapDescriptorFactory.fromResource(R.drawable.orange_icon));
                 }
 
                 if (pssg == 4) {
-                    opts.icon(markerIcon);
+                    opts.icon(BitmapDescriptorFactory.fromResource(R.drawable.red_icon));
                 }
 
                 opts.snippet("Driver : " + value_driver.get("Name").toString() + "\n" + "Number Of Passengers : " + Integer.toString(pssg) + "\n" + "Tap to call");
